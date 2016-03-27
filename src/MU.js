@@ -1,6 +1,9 @@
 const request = require('superagent');
 const program = require('commander');
-
+const jsonfile = require('jsonfile');
+const moment = require('moment');
+const path = require('path');
+const fs = require('fs');
 program
   .version('0.0.1')
   .option('-t, --deptDt [time]', 'seaching date like 2016-03-28')
@@ -10,9 +13,34 @@ program
   .option('-a, --arrCd [code]', 'arrive airportCode like SYX')
   .option('-c, --arrCdTxt [code]', 'arrive city text like 三亚')
   .option('-x, --arrCityCode [code]', 'arrive city text like SYX')
+  .option('-o, --outPath <path>', 'outpath like ../data/fool')
   .parse(process.argv);
 
-function setSearchParam(deptCd = "PVG", arrCd = "SYX", deptDt = "2016-03-26", deptCdTxt = "上海", arrCdTxt = "三亚", deptCityCode = "SHA", arrCityCode = "SYX") {
+var deptCd = program.deptCd,
+  arrCd = program.arrCd,
+  deptDt = program.deptDt,
+  deptCdTxt = program.deptCdTxt,
+  arrCdTxt = program.arrCdTxt,
+  deptCityCode = program.deptCityCode,
+  arrCityCode = program.arrCityCode,
+  outPath = program.outPath || `../data`;
+
+if (!(deptCd || arrCd || deptDt || deptCdTxt || arrCdTxt || deptCityCode || arrCityCode)) {
+  console.log('please use -h ');
+  console.error(`[${new Date()}]: err arguments`);
+  process.exit(9);
+}
+
+var now = moment().format('YYYY-MM-DD-HH-mm');
+var file = `${__dirname}/${outPath}/HO_${now}_${deptDt}_${deptCd}_${arrCd}.json`
+fs.mkdir(`${__dirname}/${outPath}`, error => {
+  if (error) {
+    console.error(error);
+  }
+  reqMU(deptCd, arrCd, deptDt, deptCdTxt, arrCdTxt, deptCityCode, arrCityCode, MUfliter)
+})
+
+function setSearchParam(deptCd, arrCd, deptDt, deptCdTxt, arrCdTxt, deptCityCode, arrCityCode) {
   let searchParam = `{"tripType":"OW","adtCount":1,"chdCount":0,"infCount":0,"currency":"CNY","sortType":"a","segmentList":[{"deptCd":"${deptCd}","arrCd":"${arrCd}","deptDt":"${deptDt}","deptCdTxt":"${deptCdTxt}","arrCdTxt":"${arrCdTxt}","deptCityCode":"${deptCityCode}","arrCityCode":"${arrCityCode}"}],"sortExec":"a","page":"0","inter":0}`;
   return searchParam
 }
@@ -79,7 +107,7 @@ function MUfliter(data) {
         };
         FlightMap.set(CarrierNo, Flight);
       }
-    }else {
+    } else {
       let Flight = {
         FType: FType,
         DepAirport: DepAirport,
@@ -90,7 +118,24 @@ function MUfliter(data) {
       FlightMap.set(CarrierNo, Flight);
     }
   }
-  console.log(FlightMap);
+  var obj = strMapToObj(FlightMap);
+  jsonfile.writeFile(file, obj, {
+    spaces: 2
+  }, function(err) {
+    if (err) {
+      console.error(`[${new Date()}]: ${err}`);
+    } else {
+      console.log(`MU_${now}_${deptDt}_${deptCd}_${arrCd} save ok`);
+    }
+  })
 }
 
-reqMU(program.deptCd, program.arrCd, program.deptDt, program.deptCdTxt, program.arrCdTxt, program.deptCityCode, program.arrCityCode, MUfliter)
+function strMapToObj(strMap) {
+  let obj = Object.create(null);
+  for (let [k, v] of strMap) {
+    // We don’t escape the key '__proto__'
+    // which can cause problems on older engines
+    obj[k] = v;
+  }
+  return obj;
+}

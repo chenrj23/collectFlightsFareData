@@ -2,10 +2,10 @@ const later = require('later');
 const moment = require('moment');
 const exec = require('child_process').exec;
 
-const oneSearchSpace = later.parse.text('every 5 sec');
-const eachSearchSpace = later.parse.text('every 1 day');
+const oneSearchSpace = later.parse.text('every 1 sec');
+// const eachSearchSpace = later.parse.text('every 1 day');
 const collectedDays = 10;
-
+const startTime = Date.now();
 
 function oneSearch() {
   let timeParams = [];
@@ -18,8 +18,8 @@ function oneSearch() {
   }
 
   let timer = later.setInterval(function() {
-    //还没想好怎么用相对路径 = =
-    exec(`node E:\\code\\collectFlightsData\\collectFlightsFareData\\HO.js -d ${timeParams[count]} -s SHA -a SYX `, (err, stdout, stderr) => {
+    // exec(`node ${__dirname}\\HO.js -d ${timeParams[count]} -s SHA -a SYX -o ..\\data\\${startTime}`, (err, stdout, stderr) => {
+    exec(`node ${__dirname}\\9C.js -d ${timeParams[count]} -s 上海 -a 三亚 -o ..\\data\\${startTime}`, (err, stdout, stderr) => {
       if (err) {
         console.error(err);
         return;
@@ -34,13 +34,7 @@ function oneSearch() {
     }
   }, oneSearchSpace)
 }
+
+
+
 oneSearch()
-
-
-exec('node E:\\code\\collectFlightsData\\collectFlightsFareData\\HO.js -d 2016-03-13 -s SHA -a SYX ', (err, stdout, stderr) => {
-  if (err) {
-    console.error(err);
-    return;
-  }
-  console.log(stdout);
-});

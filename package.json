@@ -13,5 +13,8 @@
     "commander": "^2.9.0",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2"
+  },
+  "dependencies": {
+    "exceljs": "^0.2.4"
   }
 }
