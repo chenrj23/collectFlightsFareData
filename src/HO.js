@@ -3,30 +3,37 @@ const program = require('commander');
 const jsonfile = require('jsonfile');
 const moment = require('moment');
 const path = require('path');
-
-console.log(path.dirname(process.argv[1]))
+const fs = require('fs');
 
 program
   .version('0.0.1')
-  .option('-d, --date [time]', 'seaching date like 2016-03-28')
-  .option('-s, --sendCode [code]', 'sendCode like SHA')
-  .option('-a, --arrCode [code]', 'arrCode like SYX')
+  .option('-d, --date <time>', 'seaching date like 2016-03-28')
+  .option('-s, --sendCode <code>', 'sendCode like SHA')
+  .option('-a, --arrCode <code>', 'arrCode like SYX')
+  .option('-o, --outPath <path>', 'outpath like ../data/fool')
   .parse(process.argv);
 
 var date = program.date,
-    sendCode = program.sendCode,
-    arrCode = program.arrCode;
+  sendCode = program.sendCode,
+  arrCode = program.arrCode,
+  outPath = program.outPath || `../data`;
 
 if (!(date || senCode || arrCode)) {
   console.log('need  -d -s -a');
+  console.error(`[${new Date()}]: err arguments`);
   process.exit(9);
 }
 
 var now = moment().format('YYYY-MM-DD-HH-mm');
-var file = `${path.dirname(process.argv[1])}/data/HO_${now}_${date}_${sendCode}_${arrCode}.json`
-reqHO(date, sendCode, arrCode)
+var file = `${path.dirname(process.argv[1])}/${outPath}/HO_${now}_${date}_${sendCode}_${arrCode}.json`
+fs.mkdir(`${path.dirname(process.argv[1])}/${outPath}`, error => {
+  if (error) {
+    console.error(error);
+  }
+  reqHO(date, sendCode, arrCode)
+})
 
-function setSearchParam(date = '2016-03-28', sendCode = 'SHA', arrCode = 'SYX', flightType = 'OW', tripType = 'D', directType = 'D', returnDate = 'undefined') {
+function setSearchParam(date, sendCode, arrCode, flightType = 'OW', tripType = 'D', directType = 'D', returnDate = 'undefined') {
   let searchParam = `flightType=${flightType}&tripType=${tripType}&directType=${directType}&departureDate=${date}&sendCode=${sendCode}&arrCode=${arrCode}&returnDate=${returnDate}&_=1454901318488`;
 
   return searchParam
@@ -60,7 +67,18 @@ function HOfliter(data) {
     FlightMap = new Map();
 
   if (data.ErrorInfo !== "成功") {
-    console.log(`respond ErrorInfo: ${data.ErrorInfo}`);
+    jsonfile.writeFile(file, {
+      'respond ErrorInfo': data.ErrorInfo
+    }, {
+      spaces: 2
+    }, function(err) {
+      if (err) {
+        console.log(err)
+      } else {
+        console.log("save ok");
+      }
+      process.exit(129); //  129"查询出错"
+    })
   }
 
   let FlightInfoList = data.FlightInfoList;
@@ -72,7 +90,7 @@ function HOfliter(data) {
     FType = flightInfo.FType;
     DepDateTime = flightInfo.DepDateTime;
 
-    if (flightInfo.CabinFareList.length === 0) {
+    if (flightInfo.CabinFareList && flightInfo.CabinFareList.length === 0) {
       console.log(`${CarrierNo}已售完`);
       SaleOver = true;
       Price = 0;
@@ -96,22 +114,24 @@ function HOfliter(data) {
     FlightMap.set(CarrierNo, Flight);
   }
   var obj = strMapToObj(FlightMap);
-  jsonfile.writeFile(file, obj, {spaces: 2}, function(err) {
+  jsonfile.writeFile(file, obj, {
+    spaces: 2
+  }, function(err) {
     if (err) {
-      console.error(err)
-    }else {
-      console.log("save ok");
+      console.error(`[${new Date()}]: ${err}`);
+    } else {
+      console.log(`HO_${now}_${date}_${sendCode}_${arrCode} save ok`);
     }
   })
 }
 
 
 function strMapToObj(strMap) {
-    let obj = Object.create(null);
-    for (let [k,v] of strMap) {
-        // We don’t escape the key '__proto__'
-        // which can cause problems on older engines
-        obj[k] = v;
-    }
-    return obj;
+  let obj = Object.create(null);
+  for (let [k, v] of strMap) {
+    // We don’t escape the key '__proto__'
+    // which can cause problems on older engines
+    obj[k] = v;
+  }
+  return obj;
 }
