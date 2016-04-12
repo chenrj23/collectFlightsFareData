@@ -32,26 +32,36 @@ function oneSearch() {
     timeParams.push(timeParam)
   }
 
-  let timer = setInterval(function() {
-    // exec(`node ${__dirname}\\HO.js -d ${timeParams[count]} -s SHA -a TSN -o ..\\data\\${outDir}\\${outDirHO} `, (err, stdout, stderr) => {
-    //   if (err) {
-    //     console.error(`[${Date()}]: ${err}`);
-    //     // console.error(stderr);
-    //     return;
-    //   }
-    //   console.log(stdout);
-    // });
-    //
-    // exec(`node ${__dirname}\\9C.js -d ${timeParams[count]} -s 上海 -a 天津 -o ..\\data\\${outDir}\\${outDir9C}`, (err, stdout, stderr) => {
-    //   if (err) {
-    //     console.error(`[${Date()}]: ${err}`);
-    //     // console.error(stderr);
-    //     return;
-    //   }
-    //   console.log(stdout);
-    // });
+  let timerQuick = setInterval(function() {
+    exec(`node ${__dirname}/HO.js -d ${timeParams[count]} -s SHA -a TSN -o ../data/${outDir}/${outDirHO} `, (err, stdout, stderr) => {
+      if (err) {
+        console.error(`[${Date()}]: ${err}`);
+        // console.error(stderr);
+        return;
+      }
+      console.log(stdout);
+    });
 
-    exec(`node ${__dirname}\\MU.js -t ${timeParams[count]} --deptCdTxt 上海 --deptCityCode SHA --deptCd PVG  --arrCdTxt 天津 --arrCityCode TSN --arrCd TSN -o ..\\data\\${outDir}\\${outDirMU}`, (err, stdout, stderr) => {
+    exec(`node ${__dirname}/9C.js -d ${timeParams[count]} -s 上海 -a 天津 -o ../data/${outDir}/${outDir9C}`, (err, stdout, stderr) => {
+      if (err) {
+        console.error(`[${Date()}]: ${err}`);
+        // console.error(stderr);
+        return;
+      }
+      console.log(stdout);
+    });
+
+
+    count++;
+    if (count === timeParams.length) {
+      clearInterval(timerQuick)
+      count = 0;
+    }
+  }, 100)
+
+  let timerSlower = setInterval(function() {
+
+    exec(`node ${__dirname}/MU.js -t ${timeParams[count]} --deptCdTxt 上海 --deptCityCode SHA --deptCd PVG  --arrCdTxt 天津 --arrCityCode TSN --arrCd TSN -o ../data/${outDir}/${outDirMU}`, (err, stdout, stderr) => {
       if (err) {
         console.error(`[${Date()}]: ${err}`);
         // console.error(stderr);
@@ -62,8 +72,8 @@ function oneSearch() {
 
     count++;
     if (count === timeParams.length) {
-      clearInterval(timer)
+      clearInterval(timerSlower)
       count = 0;
     }
-  }, 1000)
+  }, 5000)
 }
