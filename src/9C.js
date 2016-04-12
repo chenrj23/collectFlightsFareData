@@ -7,9 +7,9 @@ const fs = require('fs')
 
 program
   .version('0.0.1')
-  .option('-d, --date [time]', 'seaching date like 2016-03-28')
-  .option('-s, --sendCode [code]', 'sendCode like 上海')
-  .option('-a, --arrCode [code]', 'arrCode like 三亚')
+  .option('-d, --date <time>', 'seaching date like 2016-03-28')
+  .option('-s, --sendCode <code>', 'sendCode like 上海')
+  .option('-a, --arrCode <code>', 'arrCode like 三亚')
   .option('-o, --outPath <path>', 'outpath like ../data/fool')
   .parse(process.argv);
 
@@ -28,10 +28,11 @@ if (!(date || senCode || arrCode)) {
 var now = moment().format('YYYY-MM-DD-HH-mm');
 var file = `${path.dirname(process.argv[1])}/${outPath}/9C_${now}_${date}_${sendCode}_${arrCode}.json`;
 fs.mkdir(`${path.dirname(process.argv[1])}/${outPath}`, error => {
-  if (error) {
-    console.error(error);
+  if (error && error.code != 'EEXIST') {
+    console.error(`[${Date()}]: ${error}`);
+  }else {
+    req9C(date, sendCode, arrCode, nineCfliter)
   }
-  req9C(date, sendCode, arrCode, nineCfliter)
 })
 
 
@@ -51,7 +52,7 @@ function req9C(date, sendCode, arrCode, ck) {
     // .set('Accept', 'application/json')
     .end(function(err, res) {
       if (err || !res.ok) {
-        console.log('Oh no! error');
+        err
       } else {
         console.log('9C req success!');
         // console.log(res.body);
@@ -77,12 +78,12 @@ function nineCfliter(data) {
 
   let Packages = data.Packages;
   if (!Packages) {
-    console.log("该航线不存在");
+    console.error(`[${Date()}]: 该航线不存在`);
   }
 
   for (let thepackage of Packages) {
-    DepAirport = thepackage[0].ArrivalStation;
-    ArrAirport = thepackage[0].DepartureStation;
+    DepAirport = thepackage[0].DepartureStation;
+    ArrAirport = thepackage[0].ArrivalStation;
     CarrierNo = thepackage[0].No;
     FType = thepackage[0].Type;
     DepDateTime = thepackage[0].DepartureTimeBJ;

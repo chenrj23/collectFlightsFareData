@@ -6,13 +6,13 @@ const path = require('path');
 const fs = require('fs');
 program
   .version('0.0.1')
-  .option('-t, --deptDt [time]', 'seaching date like 2016-03-28')
-  .option('-d, --deptCd [code]', 'depart airportCode like PVG')
-  .option('-f, --deptCdTxt [code]', 'depart city text like 上海')
-  .option('-r, --deptCityCode [code]', 'depart city code like SHA')
-  .option('-a, --arrCd [code]', 'arrive airportCode like SYX')
-  .option('-c, --arrCdTxt [code]', 'arrive city text like 三亚')
-  .option('-x, --arrCityCode [code]', 'arrive city text like SYX')
+  .option('-t, --deptDt <time>', 'seaching date like 2016-03-28')
+  .option('-d, --deptCd <code>', 'depart airportCode like PVG')
+  .option('-f, --deptCdTxt <code>', 'depart city text like 上海')
+  .option('-r, --deptCityCode <code>', 'depart city code like SHA')
+  .option('-a, --arrCd <code>', 'arrive airportCode like SYX')
+  .option('-c, --arrCdTxt <code>', 'arrive city text like 三亚')
+  .option('-x, --arrCityCode <code>', 'arrive city text like SYX')
   .option('-o, --outPath <path>', 'outpath like ../data/fool')
   .parse(process.argv);
 
@@ -33,11 +33,13 @@ if (!(deptCd || arrCd || deptDt || deptCdTxt || arrCdTxt || deptCityCode || arrC
 
 var now = moment().format('YYYY-MM-DD-HH-mm');
 var file = `${__dirname}/${outPath}/HO_${now}_${deptDt}_${deptCd}_${arrCd}.json`
-fs.mkdir(`${__dirname}/${outPath}`, error => {
-  if (error) {
-    console.error(error);
+
+fs.mkdir(`${path.dirname(process.argv[1])}/${outPath}`, error => {
+  if (error && error.code != 'EEXIST') {
+    console.error(`[${Date()}]: ${error}`);
+  }else {
+    reqMU(deptCd, arrCd, deptDt, deptCdTxt, arrCdTxt, deptCityCode, arrCityCode, MUfliter)
   }
-  reqMU(deptCd, arrCd, deptDt, deptCdTxt, arrCdTxt, deptCityCode, arrCityCode, MUfliter)
 })
 
 function setSearchParam(deptCd, arrCd, deptDt, deptCdTxt, arrCdTxt, deptCityCode, arrCityCode) {
@@ -61,7 +63,6 @@ function reqMU(deptCd, arrCd, deptDt, deptCdTxt, arrCdTxt, deptCityCode, arrCity
         console.log('MU req success!');
         let resJson = JSON.parse(res.text);
         // console.log(resJson);
-        console.log(resJson);
         ck(resJson)
       }
     });
@@ -77,9 +78,9 @@ function MUfliter(data) {
     FlightMap = new Map();
 
   if (data.resultMsg) {
-    console.log(data.ErrorInfo);
+    console.error(`[${Date()}]: ${data.resultMsg}`);
+    process.exit(130);
   }
-
 
   let productUnits = data.airResultDto.productUnits;
 
@@ -88,8 +89,8 @@ function MUfliter(data) {
       continue
     }
     CarrierNo = productUnit.flightNoGroup;
-    DepAirport = productUnit.oriDestOption[0].flights[0].departureAirport.cityCode;
-    ArrAirport = productUnit.oriDestOption[0].flights[0].arrivalAirport.cityCode;
+    DepAirport = productUnit.oriDestOption[0].flights[0].departureAirport.code;
+    ArrAirport = productUnit.oriDestOption[0].flights[0].arrivalAirport.code;
     FType = productUnit.oriDestOption[0].flights[0].equipment.airEquipType;
     DepDateTime = productUnit.oriDestOption[0].flights[0].departureDateTime;
     Price = Number(productUnit.fareInfoView[0].fare.salePrice);

@@ -20,17 +20,18 @@ var date = program.date,
 
 if (!(date || senCode || arrCode)) {
   console.log('need  -d -s -a');
-  console.error(`[${new Date()}]: err arguments`);
+  console.error(`[${new Date()}]: err arguments\n`);
   process.exit(9);
 }
 
 var now = moment().format('YYYY-MM-DD-HH-mm');
 var file = `${path.dirname(process.argv[1])}/${outPath}/HO_${now}_${date}_${sendCode}_${arrCode}.json`
 fs.mkdir(`${path.dirname(process.argv[1])}/${outPath}`, error => {
-  if (error) {
-    console.error(error);
+  if (error && error.code != 'EEXIST') {
+    console.error(`[${Date()}]: ${error}`);
+  }else {
+    reqHO(date, sendCode, arrCode)
   }
-  reqHO(date, sendCode, arrCode)
 })
 
 function setSearchParam(date, sendCode, arrCode, flightType = 'OW', tripType = 'D', directType = 'D', returnDate = 'undefined') {
@@ -47,7 +48,7 @@ function reqHO(date, sendCode, arrCode) {
     .query(searchParam)
     .end(function(err, res) {
       if (err || !res.ok) {
-        console.log('Oh requset has error!');
+        console.error(`[${Date()}]: ${err}\n`);
       } else {
         console.log('HO req success!');
         let resJson = JSON.parse(res.text);
@@ -67,13 +68,14 @@ function HOfliter(data) {
     FlightMap = new Map();
 
   if (data.ErrorInfo !== "成功") {
+    console.error(`[${Date()}]: ${data.ErrorInfo}`);
     jsonfile.writeFile(file, {
       'respond ErrorInfo': data.ErrorInfo
     }, {
       spaces: 2
     }, function(err) {
       if (err) {
-        console.log(err)
+        console.error(`[${Date()}]: ${err}`);
       } else {
         console.log("save ok");
       }
@@ -91,7 +93,7 @@ function HOfliter(data) {
     DepDateTime = flightInfo.DepDateTime;
 
     if (flightInfo.CabinFareList && flightInfo.CabinFareList.length === 0) {
-      console.log(`${CarrierNo}已售完`);
+      console.error(`[${Date()}]: ${CarrierNo}已售完`);
       SaleOver = true;
       Price = 0;
     } else {
