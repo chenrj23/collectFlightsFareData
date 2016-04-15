@@ -32,7 +32,7 @@ if (!(deptCd || arrCd || deptDt || deptCdTxt || arrCdTxt || deptCityCode || arrC
 }
 
 var now = moment().format('YYYY-MM-DD-HH-mm');
-var file = `${__dirname}/${outPath}/HO_${now}_${deptDt}_${deptCd}_${arrCd}.json`
+var file = `${__dirname}/${outPath}/MU_${now}_${deptDt}_${deptCd}_${arrCd}.json`
 
 fs.mkdir(`${path.dirname(process.argv[1])}/${outPath}`, error => {
   if (error && error.code != 'EEXIST') {
@@ -58,7 +58,9 @@ function reqMU(deptCd, arrCd, deptDt, deptCdTxt, arrCdTxt, deptCityCode, arrCity
     // .set('Accept', 'application/json')
     .end(function(err, res) {
       if (err || !res.ok) {
-        console.log('Oh no! error');
+        console.log(`[${new Date()}]: Oh no! MU_${now}_${deptDt}_${deptCd}_${arrCd} requset error `);
+        console.error(`[${new Date()}]: Oh no! MU_${now}_${deptDt}_${deptCd}_${arrCd} requset error `);
+        console.error(`[${Date()}]: ${err}`);
       } else {
         console.log('MU req success!');
         let resJson = JSON.parse(res.text);

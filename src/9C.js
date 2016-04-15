@@ -52,7 +52,8 @@ function req9C(date, sendCode, arrCode, ck) {
     // .set('Accept', 'application/json')
     .end(function(err, res) {
       if (err || !res.ok) {
-        err
+        console.log(`[${new Date()}]: oh no！9C_${now}_${date}_${sendCode}_${arrCode} request error`);
+        console.error(`[${new Date()}]: ${err}`);
       } else {
         console.log('9C req success!');
         // console.log(res.body);

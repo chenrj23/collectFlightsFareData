@@ -5,7 +5,7 @@ const fs = require('fs');
 
 // const oneSearchSpace = later.parse.text('every 0.1 sec');
 // const eachSearchSpace = later.parse.text('every 1 day');
-const collectedDays = 10;
+const collectedDays = 60;
 const outDir = 'SHA2TSN';
 const outDir9C = '9C';
 const outDirHO = 'HO';
@@ -42,14 +42,14 @@ function oneSearch() {
       console.log(stdout);
     });
 
-    exec(`node ${__dirname}/9C.js -d ${timeParams[count]} -s 上海 -a 天津 -o ../data/${outDir}/${outDir9C}`, (err, stdout, stderr) => {
-      if (err) {
-        console.error(`[${Date()}]: ${err}`);
-        // console.error(stderr);
-        return;
-      }
-      console.log(stdout);
-    });
+    // exec(`node ${__dirname}/9C.js -d ${timeParams[count]} -s 上海 -a 天津 -o ../data/${outDir}/${outDir9C}`, (err, stdout, stderr) => {
+    //   if (err) {
+    //     console.error(`[${Date()}]: ${err}`);
+    //     // console.error(stderr);
+    //     return;
+    //   }
+    //   console.log(stdout);
+    // });
 
 
     count++;
@@ -57,23 +57,23 @@ function oneSearch() {
       clearInterval(timerQuick)
       count = 0;
     }
-  }, 100)
+  }, 1)
 
-  let timerSlower = setInterval(function() {
-
-    exec(`node ${__dirname}/MU.js -t ${timeParams[count]} --deptCdTxt 上海 --deptCityCode SHA --deptCd PVG  --arrCdTxt 天津 --arrCityCode TSN --arrCd TSN -o ../data/${outDir}/${outDirMU}`, (err, stdout, stderr) => {
-      if (err) {
-        console.error(`[${Date()}]: ${err}`);
-        // console.error(stderr);
-        return;
-      }
-      console.log(stdout);
-    });
-
-    count++;
-    if (count === timeParams.length) {
-      clearInterval(timerSlower)
-      count = 0;
-    }
-  }, 5000)
+  // let timerSlower = setInterval(function() {
+  //
+  //   exec(`node ${__dirname}/MU.js -t ${timeParams[count]} --deptCdTxt 上海 --deptCityCode SHA --deptCd PVG  --arrCdTxt 天津 --arrCityCode TSN --arrCd TSN -o ../data/${outDir}/${outDirMU}`, (err, stdout, stderr) => {
+  //     if (err) {
+  //       console.error(`[${Date()}]: ${err}`);
+  //       // console.error(stderr);
+  //       return;
+  //     }
+  //     console.log(stdout);
+  //   });
+  //
+  //   count++;
+  //   if (count === timeParams.length) {
+  //     clearInterval(timerSlower)
+  //     count = 0;
+  //   }
+  // }, 30000)
 }
