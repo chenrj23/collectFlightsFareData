@@ -54,3 +54,6 @@ build/Release
 
 #my habit
 build
+logs
+public
+*.log
